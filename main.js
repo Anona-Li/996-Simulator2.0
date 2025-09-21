@@ -1539,8 +1539,12 @@ audioManager.setVolume(0.3); // 30%音量，避免过于吵闹
         : ['img/ui/ui-boss.png'];
       const chosen = bossChoices[Math.floor(Math.random()*bossChoices.length)];
       state.currentBossVariant = (chosen.indexOf('ui-boss-01') !== -1) ? 'boss01' : 'boss';
+      console.log('选择Boss形象:', chosen, '变体:', state.currentBossVariant);
       bossEl.style.backgroundImage = `url('${chosen}')`;
-    } catch(_) { state.currentBossVariant = 'boss'; }
+    } catch(e) { 
+      console.log('Boss形象设置异常:', e);
+      state.currentBossVariant = 'boss'; 
+    }
     
     state.bossVisible = true; 
     state.lockEventOrBoss = true; // 锁定，防止随机事件同时出现
@@ -1574,12 +1578,23 @@ audioManager.setVolume(0.3); // 30%音量，避免过于吵闹
     // 播放老板出现音效（根据boss类型选择不同音效）
     try {
       const bossSfxKey = (state.currentBossVariant === 'boss01') ? 'bossbgm03' : 'bossbgm01';
+      console.log('Boss出现:', state.currentBossVariant, '播放音效:', bossSfxKey);
+      
+      // 确保延迟音频已加载
+      if (audioManager.lazyAudioFiles[bossSfxKey] && !audioManager.loadedLazyAudio.has(bossSfxKey)) {
+        audioManager.loadLazyAudio(bossSfxKey);
+      }
+      
       const bossSfx = audioManager.audioElements[bossSfxKey];
       if(bossSfx){
         bossSfx.loop = false;
+        console.log('Boss音效元素找到，准备播放');
+      } else {
+        console.log('Boss音效元素不存在:', bossSfxKey);
       }
       audioManager.playSFX(bossSfxKey, 0.8); // 80%音量
-    } catch(_) {
+    } catch(e) {
+      console.log('Boss音效播放异常:', e);
       // 如果bossbgm03不存在，回退到bossbgm01
       audioManager.playSFX('bossbgm01', 0.8);
     }
