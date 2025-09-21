@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>打工人：摸鱼与绩效</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div id="viewport">
+    <div id="app" class="prestart">
+        <header class="topbar">
+            <div class="clock" id="clock">第1天 周一 上班时间 09:00</div>
+            <div class="numeric-stats">
+                <div class="nstat">心情 <span id="moodVal">100</span></div>
+                <div class="nstat">绩效 <span id="perfVal">0.0</span></div>
+                <div class="nstat money">钱包 <span id="moneyVal">0.0</span></div>
+            </div>
+        </header>
+
+        <main class="desk">
+            <div class="boss" id="boss" title="老板"></div>
+
+            <section class="monitor">
+                <div class="screen">
+                    <div class="work-panel" id="workPanel">
+                        <h3>工作界面</h3>
+                        <div class="progress"><div id="workProgress" class="progress-fill"></div></div>
+                        <div id="workProgressPct" class="progress-pct">0%</div>
+                        <div class="note">点击下方“键盘”以推进进度</div>
+                        <button id="fishToggle" class="fish-toggle" aria-label="打开摸鱼界面">🐟</button>
+                        <div id="fishPanel" class="fish-panel hidden">
+                            <div class="fish-header">
+                                <span>摸鱼中...</span>
+                                <button id="fishClose" class="fish-close" aria-label="关闭摸鱼">✖</button>
+                            </div>
+                            <div class="fish-body">看看论坛、刷两条视频，心情+</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <button id="keyboardBtn" class="keyboard" aria-label="键盘">键盘</button>
+        </main>
+
+        <div id="eventModal" class="modal hidden" role="dialog" aria-modal="true">
+            <div class="modal-content">
+                <div class="modal-container">
+                    <div class="left">
+                        <div class="status-ind"></div>
+                    </div>
+                    <div class="right">
+                        <div class="text-wrap">
+                            <div class="modal-title" id="eventTitle">随机事件</div>
+                            <div class="modal-desc" id="eventDesc"></div>
+                        </div>
+                        <div class="modal-actions">
+                            <button id="eventOpt1" class="btn primary-cta"></button>
+                            <button id="eventOpt2" class="btn secondary-cta"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="toast" class="toast hidden">
+            <div class="flex flex-col gap-2 w-60 sm:w-72 text-[10px] sm:text-xs z-50">
+                <div class="error-alert cursor-default flex items-center justify-between w-full h-12 sm:h-14 rounded-lg bg-[#232531] px-[10px]">
+                    <div class="flex gap-2">
+                        <div class="text-[#d65563] bg-white/5 backdrop-blur-xl p-1 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"></path>
+                            </svg>
+                        </div>
+                        <div class="toast-text-container">
+                            <p class="text-white" id="toastTitle">提示</p>
+                            <p class="text-gray-500" id="toastDesc">描述信息</p>
+                        </div>
+                    </div>
+                    <button class="text-gray-600 hover:bg-white/10 p-1 rounded-md transition-colors ease-linear" id="toastClose">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="summaryModal" class="modal hidden" role="dialog" aria-modal="true">
+            <div class="modal-content">
+                <div class="modal-title" id="summaryTitle">结算</div>
+                <div class="modal-desc" id="summaryBody"></div>
+                <div class="modal-actions">
+                    <button id="summaryNextBtn" class="btn">继续</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 日夜过场层（两层叠加做渐变） -->
+        <div id="daycycleOverlay" class="daycycle-overlay">
+            <div id="daycycleNight" class="daycycle-layer"></div>
+            <div id="daycycleMorning" class="daycycle-layer"></div>
+        </div>
+
+        <!-- 资源加载界面 -->
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="loading-container">
+                <div class="loading-title">正在加载游戏资源...</div>
+                <div class="loading-progress">
+                    <div id="loadingBar" class="loading-bar"></div>
+                </div>
+                <div id="loadingText" class="loading-text">加载中 0%</div>
+            </div>
+        </div>
+
+        <div id="startOverlay" class="start-overlay hidden">
+            <button id="startBtn" class="start-btn">开始游戏</button>
+        </div>
+
+        <!-- 结局终端弹窗 -->
+        <div id="endingModal" class="modal hidden" role="dialog" aria-modal="true">
+            <div class="card">
+                <div class="wrap">
+                    <div class="terminal">
+                        <hgroup class="head">
+                            <p class="title">
+                                <svg
+                                    width="16px"
+                                    height="16px"
+                                    aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    stroke-linejoin="round"
+                                    stroke-linecap="round"
+                                    stroke-width="2"
+                                    stroke="currentColor"
+                                    fill="none"
+                                >
+                                    <path
+                                        d="M7 15L10 12L7 9M13 15H17M7.8 21H16.2C17.8802 21 18.7202 21 19.362 20.673C19.9265 20.3854 20.3854 19.9265 20.673 19.362C21 18.7202 21 17.8802 21 16.2V7.8C21 6.11984 21 5.27976 20.673 4.63803C20.3854 4.07354 19.9265 3.6146 19.362 3.32698C18.7202 3 17.8802 3 16.2 3H7.8C6.11984 3 5.27976 3 4.63803 3.32698C4.07354 3.6146 3.6146 4.07354 3.32698 4.63803C3 5.27976 3 6.11984 3 7.8V16.2C3 17.8802 3 18.7202 3.32698 19.362C3.6146 19.9265 4.07354 20.3854 4.63803 20.673C5.27976 21 6.11984 21 7.8 21Z"
+                                    ></path>
+                                </svg>
+                                Game Terminal
+                            </p>
+
+                            <button class="copy_toggle" tabindex="-1" type="button">
+                                <svg
+                                    width="16px"
+                                    height="16px"
+                                    aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    stroke-linejoin="round"
+                                    stroke-linecap="round"
+                                    stroke-width="2"
+                                    stroke="currentColor"
+                                    fill="none"
+                                >
+                                    <path
+                                        d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"
+                                    ></path>
+                                    <path
+                                        d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z"
+                                    ></path>
+                                </svg>
+                            </button>
+                        </hgroup>
+
+                        <div class="body">
+                            <pre class="pre">
+                                <code>-&nbsp;</code>
+                                <code>game&nbsp;</code>
+                                <code class="cmd" data-cmd="" id="endingCommand"></code>
+                            </pre>
+                            <div id="endingResult" class="ending-result"></div>
+                            <div class="modal-actions">
+                                <button id="endingRestartBtn" class="btn primary-cta">重新开始</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script src="main.js"></script>
+    <noscript>需要启用 JavaScript 以运行游戏。</noscript>
+</body>
+</html>
+
+
