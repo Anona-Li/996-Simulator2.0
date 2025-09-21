@@ -64,7 +64,22 @@ class AudioManager {
 
     // 播放新的BGM
     this.currentBGM = type;
-    this.audioElements[type].play().catch(e => console.log('音频播放失败:', e));
+    const audio = this.audioElements[type];
+    if (audio) {
+      console.log('准备播放BGM:', type, '音频状态:', audio.readyState);
+      audio.loop = true; // 确保BGM循环播放
+      audio.volume = 0.3; // 设置适当的音量
+      audio.currentTime = 0; // 从头开始播放
+      audio.play().then(() => {
+        console.log('BGM播放成功:', type);
+      }).catch(e => {
+        console.log('BGM播放失败:', type, e);
+        // 在网页环境中，可能需要用户交互才能播放音频
+        // 这是正常的浏览器行为，不是bug
+      });
+    } else {
+      console.log('BGM音频元素不存在:', type);
+    }
   }
 
   // 停止BGM
@@ -1363,6 +1378,7 @@ audioManager.setVolume(0.3); // 30%音量，避免过于吵闹
         startOverlay?.remove();
         
         // 开始播放BGM
+        console.log('重新开始游戏，播放BGM');
         audioManager.playBGM('bgm01');
         
         render();
@@ -1933,7 +1949,9 @@ audioManager.setVolume(0.3); // 30%音量，避免过于吵闹
   };
   setInterval(tick, 1000);
 
-  // 开始游戏
+  // 开始游戏（初始加载时的监听器）
+  // 注意：这个监听器只在首次加载时生效
+  // 重新开始游戏时会在resetGame中重新创建按钮和监听器
   startBtn?.addEventListener('click', () => {
     const app = document.getElementById('app');
     const viewport = document.getElementById('viewport');
@@ -1951,6 +1969,7 @@ audioManager.setVolume(0.3); // 30%音量，避免过于吵闹
     startOverlay?.remove();
     
     // 开始播放BGM
+    console.log('首次游戏开始，播放BGM');
     audioManager.playBGM('bgm01');
     
     render();
